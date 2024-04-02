@@ -658,6 +658,19 @@ engines:
     engine: duckduckgo
     shortcut: ddg
 
+  - name: 4get
+    engine: 4get
+    shortcut: 4g
+    timeout: 30
+    disabled: true
+    enable_http: true
+    search_type: web
+    categories: general
+
+  #   Mandatory Settings:
+    base_url: "http://127.0.0.1" #use your api-enabled, captcha-free instance
+    scraper: ddg # check the 4get.py module for all options
+
   - name: duckduckgo images
     engine: duckduckgo_extra
     categories: [images, web]
