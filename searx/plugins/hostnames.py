@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # pylint: disable=too-many-branches, unused-argument
-"""During the initialization phase, the plugin checks whether a ``hostnames:``
+"""Example filter with subdomain replacement: '(.*\.)?(?P<subdomain>[^.]+)\.fandom\.com$': 'breezewiki.com/\g<subdomain>'
+During the initialization phase, the plugin checks whether a ``hostnames:``
 configuration exists. If this is not the case, the plugin is not included in the
 PluginStorage (it is not available for selection).
 
@@ -13,6 +14,7 @@ PluginStorage (it is not available for selection).
        replace:
          '(.*\\.)?youtube\\.com$': 'invidious.example.com'
          '(.*\\.)?youtu\\.be$': 'invidious.example.com'
+         '(.*\\.)?youtube\\.com$': '(*).invidious.example.com'
          ...
 
 - ``hostnames.remove``: A **list** of regular expressions of the hostnames whose
@@ -192,8 +194,15 @@ def filter_url_field(result: "Result|LegacyResult", field_name: str, url_src: st
             return False
 
     for pattern, replacement in REPLACE.items():
-        if pattern.search(url_src_parsed.netloc):
-            new_url = url_src_parsed._replace(netloc=pattern.sub(replacement, url_src_parsed.netloc))
+        match = pattern.search(url_src_parsed.netloc)
+        if match:
+            # Extract subdomain from the first capture group if it exists
+            subdomain = match.group(1) or ''
+            # Replace (*) placeholder with the captured subdomain
+            new_netloc = replacement.replace('(*)', subdomain)
+            # Apply the full pattern substitution with the new netloc
+            new_netloc = pattern.sub(new_netloc, url_src_parsed.netloc)
+            new_url = url_src_parsed._replace(netloc=new_netloc)
             new_url = urlunparse(new_url)
             return new_url
 
